@@ -1,0 +1,33 @@
+{
+  "xsappname": "saptest",
+  "tenant-mode": "dedicated",
+  "description": "Security profile of called application",
+  "scopes": [
+    {
+      "name": "uaa.user",
+      "description": "UAA"
+    },
+    {
+      "name": "$XSAPPNAME.test-admin-user",
+      "description": "test-admin-user"
+    }
+  ],
+  "role-templates": [
+    {
+      "name": "Token_Exchange",
+      "description": "UAA",
+      "scope-references": [
+        "uaa.user"
+      ]
+    },
+    {
+      "name": "test-admin-user",
+      "description": "generated",
+      "scope-references": [
+        "$XSAPPNAME.test-admin-user"
+      ],
+      "attribute-references": []
+    }
+  ],
+  "attributes": []
+}

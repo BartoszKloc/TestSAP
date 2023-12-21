@@ -1,55 +1,79 @@
 _schema-version: "3.1"
 ID: SAPTest
 description: A simple CAP project.
-version: 1.0.0
+version: 1.0.4
 modules:
-- name: SAPTest-srv
-  type: nodejs
-  path: gen/srv
-  requires:
-  - name: SAPTest-db
-  provides:
-  - name: srv-api
-    properties:
-      srv-url: ${default-url}
-  parameters:
-    buildpack: nodejs_buildpack
-  build-parameters:
-    builder: npm-ci
-- name: SAPTest-db-deployer
-  type: hdb
-  path: gen/db
-  requires:
-  - name: SAPTest-db
-  parameters:
-    buildpack: nodejs_buildpack
-
-resources:
-- name: SAPTest-db
-  type: com.sap.xs.hdi-container
-  parameters:
-    service: hana
-    service-plan: hdi-shared
-- name: SAPTest-destination-service
-  type: org.cloudfoundry.managed-service
-  parameters:
-    config:
-      HTML5Runtime_enabled: false
-      init_data:
+  - name: SAPTest-srv
+    type: nodejs
+    path: gen/srv
+    requires:
+      - name: SAPTest-db
+      - name: uaa_SAPTest
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    parameters:
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm-ci
+  - name: SAPTest-db-deployer
+    type: hdb
+    path: gen/db
+    requires:
+      - name: SAPTest-db
+    parameters:
+      buildpack: nodejs_buildpack
+  - name: SAPTest-destination-content
+    type: com.sap.application.content
+    requires:
+      - name: SAPTest-destination-service
+        parameters:
+          content-target: true
+      - name: uaa_SAPTest
+        parameters:
+          service-key:
+            name: uaa_SAPTest-key
+    parameters:
+      content:
         instance:
           destinations:
-          - Authentication: NoAuthentication
-            Name: ui5
-            ProxyType: Internet
-            Type: HTTP
-            URL: https://ui5.sap.com
-          existing_destinations_policy: update
-      version: 1.0.0
-    service: destination
-    service-name: SAPTest-destination-service
-    service-plan: lite
+            - Authentication: OAuth2UserTokenExchange
+              Name: test_app_uaa_SAPTest
+              ServiceInstanceName: SAPTest-xsuaa-service
+              ServiceKeyName: uaa_SAPTest-key
+              sap.cloud.service: test-app
+          existing_destinations_policy: ignore
+    build-parameters:
+      no-source: true
+resources:
+  - name: SAPTest-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+  - name: SAPTest-destination-service
+    type: org.cloudfoundry.managed-service
+    parameters:
+      config:
+        HTML5Runtime_enabled: true
+        version: 1.0.0
+      service: destination
+      service-name: SAPTest-destination-service
+      service-plan: lite
+  - name: uaa_SAPTest
+    type: org.cloudfoundry.managed-service
+    parameters:
+      path: ./xs-security.json
+      service: xsuaa
+      service-name: SAPTest-xsuaa-service
+      service-plan: application
+      config:
+        xsappname: SAPTest-${org}-${space}
+        tenant-mode: dedicated
 build-parameters:
   before-all:
-  - builder: custom
-    commands:
-    - npx -p @sap/cds-dk cds build --production
+    - builder: custom
+      commands:
+        - npm ci
+        - npx -p @sap/cds-dk cds build --production

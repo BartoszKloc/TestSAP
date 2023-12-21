@@ -12,7 +12,9 @@
         "@sap/cf-tools": "^3.2.0",
         "express": "^4",
         "hdb": "^0.19.0",
-        "jsonwebtoken": "^9.0.1"
+        "jsonwebtoken": "^9.0.1",
+        "@sap/xssec": "^3",
+        "passport": "^0"
     },
     "devDependencies": {
         "@sap/ux-specification": "^1.108.8",
@@ -34,7 +36,10 @@
     },
     "cds": {
         "requires": {
-            "db": "hana-cloud"
+            "db": "hana-cloud",
+            "[hybrid]": {
+                "auth": "xsuaa"
+            }
         }
     }
 }
