@@ -1,7 +1,7 @@
 _schema-version: "3.1"
 ID: SAPTest
 description: A simple CAP project.
-version: 1.0.4
+version: 1.0.8
 modules:
   - name: SAPTest-srv
     type: nodejs
@@ -46,6 +46,22 @@ modules:
           existing_destinations_policy: ignore
     build-parameters:
       no-source: true
+
+  - name: SAPTest
+    type: approuter.nodejs
+    path: app/
+    parameters:
+      keep-existing-routes: true
+      disk-quota: 256M
+      memory: 256M
+    requires:
+      - name: srv-api
+        group: destinations
+        properties:
+          name: srv-api # must be used in xs-app.json as well
+          url: ~{srv-url}
+          forwardAuthToken: true
+      - name: uaa_SAPTest
 resources:
   - name: SAPTest-db
     type: com.sap.xs.hdi-container

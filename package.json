@@ -39,7 +39,8 @@
             "db": "hana-cloud",
             "[hybrid]": {
                 "auth": "xsuaa"
-            }
+            },
+            "auth": "xsuaa"
         }
     }
 }
